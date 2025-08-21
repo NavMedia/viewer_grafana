@@ -22,10 +22,7 @@ import (
 	pref "github.com/grafana/grafana/pkg/services/preference"
 	"github.com/grafana/grafana/pkg/services/sqlstore/searchstore"
 	"github.com/grafana/grafana/pkg/services/star"
-	"github.com/grafana/grafana/pkg/services/supportbundles/supportbundlesimpl"
 	"github.com/grafana/grafana/pkg/setting"
-
-	"github.com/open-feature/go-sdk/openfeature"
 )
 
 type ServiceImpl struct {
@@ -85,26 +82,8 @@ func ProvideService(cfg *setting.Cfg, accessControl ac.AccessControl, pluginStor
 func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Preference) (*navtree.NavTreeRoot, error) {
 	hasAccess := ac.HasAccess(s.accessControl, c)
 	treeRoot := &navtree.NavTreeRoot{}
-	ctx := c.Req.Context()
 
 	treeRoot.AddSection(s.getHomeNode(c, prefs))
-
-	if hasAccess(ac.EvalPermission(dashboards.ActionDashboardsRead)) {
-		starredItemsLinks, err := s.buildStarredItemsNavLinks(c)
-		if err != nil {
-			return nil, err
-		}
-
-		treeRoot.AddSection(&navtree.NavLink{
-			Text:           "Starred",
-			Id:             "starred",
-			Icon:           "star",
-			SortWeight:     navtree.WeightSavedItems,
-			Children:       starredItemsLinks,
-			EmptyMessageId: "starred-empty",
-			Url:            s.cfg.AppSubURL + "/dashboards?starred",
-		})
-	}
 
 	if c.IsPublicDashboardView() || hasAccess(ac.EvalAny(
 		ac.EvalPermission(dashboards.ActionFoldersRead), ac.EvalPermission(dashboards.ActionFoldersCreate),
@@ -123,28 +102,6 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		}
 
 		treeRoot.AddSection(dashboardLink)
-	}
-
-	if s.cfg.ExploreEnabled && hasAccess(ac.EvalPermission(ac.ActionDatasourcesExplore)) {
-		treeRoot.AddSection(&navtree.NavLink{
-			Text:       "Explore",
-			Id:         navtree.NavIDExplore,
-			SubTitle:   "Explore your data",
-			Icon:       "compass",
-			SortWeight: navtree.WeightExplore,
-			Url:        s.cfg.AppSubURL + "/explore",
-		})
-	}
-
-	if hasAccess(ac.EvalPermission(ac.ActionDatasourcesExplore)) {
-		treeRoot.AddSection(&navtree.NavLink{
-			Text:       "Drilldown",
-			Id:         navtree.NavIDDrilldown,
-			SubTitle:   "Drill down into your data using Grafana's powerful queryless apps",
-			Icon:       "drilldown",
-			SortWeight: navtree.WeightDrilldown,
-			Url:        s.cfg.AppSubURL + "/drilldown",
-		})
 	}
 
 	if s.cfg.ProfileEnabled && c.IsSignedIn {
@@ -172,12 +129,6 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		return nil, err
 	}
 
-	s.addHelpLinks(treeRoot, c)
-
-	if err := s.addAppLinks(treeRoot, c); err != nil {
-		return nil, err
-	}
-
 	// remove user access if empty. Happens if grafana-auth-app is not injected
 	if sec := treeRoot.FindById(navtree.NavIDCfgAccess); sec != nil && len(sec.Children) == 0 {
 		treeRoot.RemoveSectionByID(navtree.NavIDCfgAccess)
@@ -185,19 +136,6 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 	// double-check and remove admin menu if empty
 	if sec := treeRoot.FindById(navtree.NavIDCfg); sec != nil && len(sec.Children) == 0 {
 		treeRoot.RemoveSectionByID(navtree.NavIDCfg)
-	}
-
-	enabled := openfeature.GetApiInstance().GetClient().Boolean(ctx, featuremgmt.FlagPinNavItems, true, openfeature.TransactionContext(ctx))
-	if enabled && c.IsSignedIn {
-		treeRoot.AddSection(&navtree.NavLink{
-			Text:           "Bookmarks",
-			Id:             navtree.NavIDBookmarks,
-			Icon:           "bookmark",
-			SortWeight:     navtree.WeightBookmarks,
-			Children:       []*navtree.NavLink{},
-			EmptyMessageId: "bookmarks-empty",
-			Url:            s.cfg.AppSubURL + "/bookmarks",
-		})
 	}
 
 	return treeRoot, nil
@@ -241,40 +179,6 @@ func (s *ServiceImpl) getHomeNode(c *contextmodel.ReqContext, prefs *pref.Prefer
 
 func isSupportBundlesEnabled(s *ServiceImpl) bool {
 	return s.cfg.SectionWithEnvOverrides("support_bundles").Key("enabled").MustBool(true)
-}
-
-func (s *ServiceImpl) addHelpLinks(treeRoot *navtree.NavTreeRoot, c *contextmodel.ReqContext) {
-	if s.cfg.HelpEnabled {
-		// The version subtitle is set later by NavTree.ApplyHelpVersion
-		helpNode := &navtree.NavLink{
-			Text:       "Help",
-			Id:         "help",
-			Url:        "#",
-			Icon:       "question-circle",
-			SortWeight: navtree.WeightHelp,
-			Children:   []*navtree.NavLink{},
-		}
-
-		treeRoot.AddSection(helpNode)
-
-		hasAccess := ac.HasAccess(s.accessControl, c)
-		supportBundleAccess := ac.EvalAny(
-			ac.EvalPermission(supportbundlesimpl.ActionRead),
-			ac.EvalPermission(supportbundlesimpl.ActionCreate),
-		)
-
-		if isSupportBundlesEnabled(s) && hasAccess(supportBundleAccess) {
-			supportBundleNode := &navtree.NavLink{
-				Text:       "Support bundles",
-				Id:         "support-bundles",
-				Url:        "/support-bundles",
-				Icon:       "wrench",
-				SortWeight: navtree.WeightHelp,
-			}
-
-			helpNode.Children = append(helpNode.Children, supportBundleNode)
-		}
-	}
 }
 
 func (s *ServiceImpl) getProfileNode(c *contextmodel.ReqContext) *navtree.NavLink {
@@ -367,47 +271,47 @@ func (s *ServiceImpl) buildDashboardNavLinks(c *contextmodel.ReqContext) []*navt
 	dashboardChildNavs := []*navtree.NavLink{}
 
 	if c.IsSignedIn {
-		if c.HasRole(org.RoleViewer) {
-			dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
-				Text: "Playlists", SubTitle: "Groups of dashboards that are displayed in a sequence", Id: "dashboards/playlists", Url: s.cfg.AppSubURL + "/playlists", Icon: "presentation-play",
-			})
-		}
+		// if c.HasRole(org.RoleViewer) {
+		// 	dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
+		// 		Text: "Playlists", SubTitle: "Groups of dashboards that are displayed in a sequence", Id: "dashboards/playlists", Url: s.cfg.AppSubURL + "/playlists", Icon: "presentation-play",
+		// 	})
+		// }
 
-		if s.cfg.SnapshotEnabled && hasAccess(ac.EvalPermission(dashboards.ActionSnapshotsRead)) {
-			dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
-				Text:     "Snapshots",
-				SubTitle: "Interactive, publicly available, point-in-time representations of dashboards",
-				Id:       "dashboards/snapshots",
-				Url:      s.cfg.AppSubURL + "/dashboard/snapshots",
-				Icon:     "camera",
-			})
-		}
+		// if s.cfg.SnapshotEnabled && hasAccess(ac.EvalPermission(dashboards.ActionSnapshotsRead)) {
+		// 	dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
+		// 		Text:     "Snapshots",
+		// 		SubTitle: "Interactive, publicly available, point-in-time representations of dashboards",
+		// 		Id:       "dashboards/snapshots",
+		// 		Url:      s.cfg.AppSubURL + "/dashboard/snapshots",
+		// 		Icon:     "camera",
+		// 	})
+		// }
 
-		dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
-			Text:     "Library panels",
-			SubTitle: "Reusable panels that can be added to multiple dashboards",
-			Id:       "dashboards/library-panels",
-			Url:      s.cfg.AppSubURL + "/library-panels",
-			Icon:     "library-panel",
-		})
+		// dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
+		// 	Text:     "Library panels",
+		// 	SubTitle: "Reusable panels that can be added to multiple dashboards",
+		// 	Id:       "dashboards/library-panels",
+		// 	Url:      s.cfg.AppSubURL + "/library-panels",
+		// 	Icon:     "library-panel",
+		// })
 
-		if s.cfg.PublicDashboardsEnabled {
-			dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
-				Text: "Public dashboards",
-				Id:   "dashboards/public",
-				Url:  s.cfg.AppSubURL + "/dashboard/public",
-				Icon: "library-panel",
-			})
-		}
+		// if s.cfg.PublicDashboardsEnabled {
+		// 	dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
+		// 		Text: "Public dashboards",
+		// 		Id:   "dashboards/public",
+		// 		Url:  s.cfg.AppSubURL + "/dashboard/public",
+		// 		Icon: "library-panel",
+		// 	})
+		// }
 
-		if s.features.IsEnabled(c.Req.Context(), featuremgmt.FlagRestoreDashboards) && (c.GetOrgRole() == org.RoleAdmin || c.IsGrafanaAdmin) {
-			dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
-				Text:     "Recently deleted",
-				SubTitle: "Any items listed here for more than 30 days will be automatically deleted.",
-				Id:       "dashboards/recently-deleted",
-				Url:      s.cfg.AppSubURL + "/dashboard/recently-deleted",
-			})
-		}
+		// if s.features.IsEnabled(c.Req.Context(), featuremgmt.FlagRestoreDashboards) && (c.GetOrgRole() == org.RoleAdmin || c.IsGrafanaAdmin) {
+		// 	dashboardChildNavs = append(dashboardChildNavs, &navtree.NavLink{
+		// 		Text:     "Recently deleted",
+		// 		SubTitle: "Any items listed here for more than 30 days will be automatically deleted.",
+		// 		Id:       "dashboards/recently-deleted",
+		// 		Url:      s.cfg.AppSubURL + "/dashboard/recently-deleted",
+		// 	})
+		// }
 	}
 
 	if hasAccess(ac.EvalPermission(dashboards.ActionDashboardsCreate)) {

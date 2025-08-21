@@ -62,8 +62,8 @@ export class Branding {
   static LoginBackground = LoginBackground;
   static MenuLogo = MenuLogo;
   static LoginBoxBackground = LoginBoxBackground;
-  static AppTitle = 'Grafana';
-  static LoginTitle = 'Welcome to Grafana';
+  static AppTitle = 'NavRide';
+  static LoginTitle = 'Welcome to NavRide Dashboards';
   static HideEdition = false;
   static GetLoginSubTitle = (): null | string => {
     return null;

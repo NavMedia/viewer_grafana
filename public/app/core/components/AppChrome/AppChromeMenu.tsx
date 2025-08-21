@@ -57,11 +57,11 @@ export function AppChromeMenu({}: Props) {
           timeout={{ enter: animationSpeed, exit: 0 }}
         >
           <>
-            {isOpen && (
+            {/* {isOpen && (
               <FocusScope contain autoFocus restoreFocus>
                 <MegaMenu className={styles.menu} onClose={onClose} ref={ref} {...overlayProps} {...dialogProps} />
               </FocusScope>
-            )}
+            )} */}
           </>
         </CSSTransition>
         <CSSTransition

@@ -24,29 +24,6 @@
   "panels": [
     {
       "gridPos": {
-        "h": 26,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      },
-      "id": 7,
-      "links": [],
-      "options": {
-        "maxItems": 100,
-        "query": "",
-        "showHeadings": true,
-        "showRecentlyViewed": true,
-        "showSearch": false,
-        "showStarred": true,
-        "tags": []
-      },
-      "pluginVersion": "8.1.0-pre",
-      "tags": [],
-      "title": "Starred",
-      "type": "dashlist"
-    },
-    {
-      "gridPos": {
         "h": 13,
         "w": 6,
         "x": 6,

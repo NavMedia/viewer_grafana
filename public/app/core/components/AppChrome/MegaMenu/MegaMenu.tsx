@@ -9,14 +9,13 @@ import { t } from '@grafana/i18n';
 import { config, reportInteraction } from '@grafana/runtime';
 import { ScrollContainer, useStyles2 } from '@grafana/ui';
 import { useGrafana } from 'app/core/context/GrafanaContext';
-import { setBookmark } from 'app/core/reducers/navBarTree';
 import { usePatchUserPreferencesMutation } from 'app/features/preferences/api/index';
-import { useDispatch, useSelector } from 'app/types/store';
+import { useSelector } from 'app/types/store';
 
 import { MegaMenuHeader } from './MegaMenuHeader';
 import { MegaMenuItem } from './MegaMenuItem';
 import { usePinnedItems } from './hooks';
-import { enrichWithInteractionTracking, findByUrl, getActiveItem } from './utils';
+import { enrichWithInteractionTracking,  getActiveItem } from './utils';
 
 export const MENU_WIDTH = '300px';
 
@@ -30,7 +29,6 @@ export const MegaMenu = memo(
     const styles = useStyles2(getStyles);
     const location = useLocation();
     const { chrome } = useGrafana();
-    const dispatch = useDispatch();
     const state = chrome.useState();
     const [patchPreferences] = usePatchUserPreferencesMutation();
     const pinnedItems = usePinnedItems();
@@ -39,27 +37,6 @@ export const MegaMenu = memo(
     const navItems = navTree
       .filter((item) => item.id !== 'profile' && item.id !== 'help')
       .map((item) => enrichWithInteractionTracking(item, state.megaMenuDocked));
-
-    if (config.featureToggles.pinNavItems) {
-      const bookmarksItem = navItems.find((item) => item.id === 'bookmarks');
-      if (bookmarksItem) {
-        // Add children to the bookmarks section
-        bookmarksItem.children = pinnedItems.reduce((acc: NavModelItem[], url) => {
-          const item = findByUrl(navItems, url);
-          if (!item) {
-            return acc;
-          }
-          const newItem = {
-            id: item.id,
-            text: item.text,
-            url: item.url,
-            parentItem: { id: 'bookmarks', text: 'Bookmarks' },
-          };
-          acc.push(enrichWithInteractionTracking(newItem, state.megaMenuDocked));
-          return acc;
-        }, []);
-      }
-    }
 
     const activeItem = getActiveItem(navItems, state.sectionNav.node, location.pathname);
 
@@ -99,10 +76,6 @@ export const MegaMenu = memo(
               bookmarkUrls: newItems,
             },
           },
-        }).then((data) => {
-          if (!data.error) {
-            dispatch(setBookmark({ item: item, isSaved: !isSaved }));
-          }
         });
       }
     };
