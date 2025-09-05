@@ -477,10 +477,10 @@ const getStyles = (theme: GrafanaTheme2) => {
   return {
     container: css({
       label: 'panel-container',
-      backgroundColor: background,
+      backgroundColor: `#F8F8F8`,
       border: `1px solid ${borderColor}`,
       position: 'relative',
-      borderRadius: theme.shape.radius.default,
+      borderRadius: `15px`,
       height: '100%',
       display: 'flex',
       flexDirection: 'column',

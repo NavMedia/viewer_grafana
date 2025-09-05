@@ -252,7 +252,7 @@ export const getButtonStyles = (props: StyleProps) => {
       lineHeight: `${theme.spacing.gridSize * height - 2}px`,
       verticalAlign: 'middle',
       cursor: 'pointer',
-      borderRadius: theme.shape.radius.default,
+      borderRadius: `15px`,
       '&:focus': focusStyle,
       '&:focus-visible': focusStyle,
       '&:focus:not(:focus-visible)': getMouseFocusStyles(theme),

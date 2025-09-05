@@ -525,7 +525,7 @@ export function getBasicAndGradientStyles(props: Props): BasicAndGradientStyles 
   };
 
   const barStyles: CSSProperties = {
-    borderRadius: theme.shape.radius.default,
+    borderRadius: `0 0 10px 10px`,
     position: 'relative',
   };
 
@@ -533,7 +533,7 @@ export function getBasicAndGradientStyles(props: Props): BasicAndGradientStyles 
     background: theme.colors.background.secondary,
     flexGrow: 1,
     display: 'flex',
-    borderRadius: theme.shape.radius.default,
+    borderRadius: `10px 10px 0 0`,
     position: 'relative',
   };
 

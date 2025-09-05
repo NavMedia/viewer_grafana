@@ -46,7 +46,7 @@ export function getElementStyles(theme: GrafanaTheme2, isExtensionSidebarOpen?: 
       width: '100%',
       position: 'unset',
       color: theme.colors.text.primary,
-      backgroundColor: theme.colors.background.canvas,
+      backgroundColor: `#FFFFFF`,
       paddingRight: '0 !important',
       '@media print': {
         overflow: 'visible',

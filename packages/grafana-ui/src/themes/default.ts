@@ -108,9 +108,9 @@ const theme: GrafanaThemeCommons = {
   },
   border: {
     radius: {
-      sm: '2px',
-      md: '3px',
-      lg: '5px',
+      sm: '15px',
+      md: '30px',
+      lg: '15px',
     },
     width: {
       sm: '1px',

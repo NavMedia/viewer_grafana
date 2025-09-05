@@ -130,28 +130,7 @@ function DashboardControlsRenderer({ model }: SceneComponentProps<DashboardContr
   }
 
   return (
-    <div
-      data-testid={selectors.pages.Dashboard.Controls}
-      className={cx(styles.controls, editPanel && styles.controlsPanelEdit)}
-    >
-      <Stack grow={1} wrap={'wrap'}>
-        {!hideVariableControls && (
-          <>
-            <VariableControls dashboard={dashboard} />
-            <DataLayerControls dashboard={dashboard} />
-          </>
-        )}
-        <Box grow={1} />
-        {!hideLinksControls && !editPanel && <DashboardLinksControls links={links} dashboard={dashboard} />}
-        {editPanel && <PanelEditControls panelEditor={editPanel} />}
-      </Stack>
-      {!hideTimeControls && (
-        <Stack justifyContent={'flex-end'}>
-          <timePicker.Component model={timePicker} />
-          <refreshPicker.Component model={refreshPicker} />
-        </Stack>
-      )}
-      {showDebugger && <SceneDebugger scene={model} key={'scene-debugger'} />}
+    <div>
     </div>
   );
 }
@@ -171,27 +150,15 @@ function DataLayerControls({ dashboard }: { dashboard: DashboardScene }) {
 function getStyles(theme: GrafanaTheme2) {
   return {
     controls: css({
-      display: 'flex',
-      alignItems: 'flex-start',
-      flex: '100%',
-      gap: theme.spacing(1),
-      padding: theme.spacing(2),
-      flexDirection: 'row',
-      flexWrap: 'nowrap',
-      position: 'relative',
-      width: '100%',
-      marginLeft: 'auto',
-      [theme.breakpoints.down('sm')]: {
-        flexDirection: 'column-reverse',
-        alignItems: 'stretch',
-      },
+     paddingTop: `20px`,
+      background: `#FFFFFF`
     }),
     controlsPanelEdit: css({
       // In panel edit we do not need any right padding as the splitter is providing it
       paddingRight: 0,
     }),
     embedded: css({
-      background: 'unset',
+      background: '#FFFFFF',
       position: 'unset',
     }),
   };

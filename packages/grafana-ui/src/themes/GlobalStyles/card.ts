@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 export function getCardStyles(theme: GrafanaTheme2) {
   return css({
     '.card-section': {
-      marginBottom: theme.spacing(4),
+      margin: theme.spacing(4),
     },
 
     '.card-list': {
@@ -158,7 +158,7 @@ export function getCardStyles(theme: GrafanaTheme2) {
       },
 
       '.card-item': {
-        borderRadius: theme.shape.radius.default,
+        borderRadius: `15px`,
       },
 
       '.card-item-header': {
